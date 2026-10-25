@@ -12,6 +12,18 @@ Outil de capture d'écran et d'annotation pour macOS, inspiré des fonctionnalit
 - Raccourcis de l'éditeur : R E L A F T H O I C pour les outils, ⌘C copier, ⌘S enregistrer, ⇧⌘S enregistrer sous
 - Après capture (réglable) : ouvrir l'éditeur, copier, ou enregistrer directement (PNG/JPEG) dans un dossier
 
+## Installer le .dmg (sans Xcode)
+
+Chaque push sur `main` compile un `ShotMark.dmg` (onglet *Actions* du dépôt, artefact `ShotMark-dmg`).
+L'app est signée ad hoc mais pas notarisée par Apple, donc macOS bloque le premier lancement (« Élément non ouvert ») :
+
+1. Glisser ShotMark dans Applications, essayer de l'ouvrir une fois, puis cliquer sur *Terminé*.
+2. Réglages Système › Confidentialité et sécurité, descendre jusqu'à « ShotMark a été bloqué », cliquer sur **Ouvrir quand même** et confirmer.
+   Ou, dans le Terminal : `xattr -cr /Applications/ShotMark.app`
+3. Autoriser ShotMark dans Confidentialité et sécurité › Enregistrement de l'écran, puis relancer l'app.
+
+Pour supprimer cet avertissement, il faut signer avec un certificat Developer ID et notariser l'app (compte Apple Developer, 99 $/an).
+
 ## Prérequis
 
 - macOS 14 Sonoma ou plus récent (utilise ScreenCaptureKit / `SCScreenshotManager`)

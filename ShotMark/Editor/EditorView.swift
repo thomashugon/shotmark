@@ -25,6 +25,14 @@ struct EditorView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: model.statusMessage)
         }
+        .sheet(isPresented: recognizedTextBinding) {
+            RecognizedTextSheet(text: model.recognizedText ?? "") { model.recognizedText = nil }
+        }
+    }
+
+    private var recognizedTextBinding: Binding<Bool> {
+        Binding(get: { model.recognizedText != nil },
+                set: { if !$0 { model.recognizedText = nil } })
     }
 
     private var toolbar: some View {
@@ -68,6 +76,15 @@ struct EditorView: View {
 
             Spacer()
 
+            Button(action: model.recognizeText) {
+                if model.isRecognizingText {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Label("Texte (OCR)", systemImage: "text.viewfinder")
+                }
+            }
+            .keyboardShortcut("t", modifiers: [.command, .shift])
+            .help("Extraire le texte de l'image (⇧⌘T)")
             Button(action: model.copyToClipboard) { Label("Copier", systemImage: "doc.on.doc") }
                 .keyboardShortcut("c")
             Button(action: model.quickSave) { Label("Enregistrer", systemImage: "square.and.arrow.down") }
@@ -147,5 +164,33 @@ private struct AnnotationCanvas: View {
         model.add(Annotation(tool: .text, start: point, end: point, color: model.color,
                              lineWidth: model.lineWidth, text: textInput))
         pendingTextPoint = nil
+    }
+}
+
+/// Shows the OCR result, editable, with a copy button.
+private struct RecognizedTextSheet: View {
+    @State var text: String
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Texte reconnu").font(.headline)
+            TextEditor(text: $text)
+                .font(.body)
+                .frame(minWidth: 460, minHeight: 260)
+                .border(Color(nsColor: .separatorColor))
+            HStack {
+                Spacer()
+                Button("Fermer", action: onClose)
+                    .keyboardShortcut(.cancelAction)
+                Button("Copier") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(text, forType: .string)
+                    onClose()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
     }
 }

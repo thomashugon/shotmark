@@ -16,6 +16,8 @@ final class EditorModel: ObservableObject {
     @Published var color: Color = .red
     @Published var lineWidth: CGFloat = 3
     @Published var statusMessage: String?
+    @Published var recognizedText: String?
+    @Published private(set) var isRecognizingText = false
 
     /// Pixels per point of the captured image (2 on Retina displays).
     let scale: CGFloat
@@ -97,6 +99,25 @@ final class EditorModel: ObservableObject {
         guard let output = renderedImage() else { return }
         if let url = ImageExporter.saveWithPanel(output) {
             flash("Enregistré : \(url.lastPathComponent)")
+        }
+    }
+
+    /// OCR on the original capture (annotations excluded).
+    func recognizeText() {
+        guard !isRecognizingText else { return }
+        isRecognizingText = true
+        Task {
+            defer { isRecognizingText = false }
+            do {
+                let text = try await TextRecognizer.recognizeText(in: image)
+                if text.isEmpty {
+                    flash("Aucun texte détecté")
+                } else {
+                    recognizedText = text
+                }
+            } catch {
+                flash("Erreur OCR : \(error.localizedDescription)")
+            }
         }
     }
 

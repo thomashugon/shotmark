@@ -22,6 +22,9 @@ private struct MenuContent: View {
         Button("Capturer l'écran entier  ⌥⇧3") {
             CaptureCoordinator.shared.captureFullScreen()
         }
+        Button("Copier le texte d'une zone (OCR)  ⌥⇧2") {
+            CaptureCoordinator.shared.captureText()
+        }
         Button("Répéter la dernière zone  ⌥⇧5") {
             CaptureCoordinator.shared.repeatLastRegion()
         }

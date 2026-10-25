@@ -28,6 +28,7 @@ struct SettingsView: View {
             Section("Raccourcis") {
                 LabeledContent("Zone ou fenêtre", value: "⌥⇧4")
                 LabeledContent("Écran entier", value: "⌥⇧3")
+                LabeledContent("Copier le texte (OCR)", value: "⌥⇧2")
                 LabeledContent("Répéter la dernière zone", value: "⌥⇧5")
             }
         }

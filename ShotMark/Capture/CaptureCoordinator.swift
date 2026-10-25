@@ -10,11 +10,26 @@ final class CaptureCoordinator {
     private var overlays: [SelectionOverlayController] = []
     private var editorWindows: [NSWindow] = []
     private var lastRegion: (displayID: CGDirectDisplayID, rect: CGRect)?
+    private var selectionPurpose: SelectionPurpose = .capture
+
+    private enum SelectionPurpose {
+        case capture, recognizeText
+    }
 
     // MARK: Capture flows
 
     func captureRegion() {
+        startSelection(for: .capture)
+    }
+
+    /// Select a region and copy the text it contains to the clipboard.
+    func captureText() {
+        startSelection(for: .recognizeText)
+    }
+
+    private func startSelection(for purpose: SelectionPurpose) {
         guard overlays.isEmpty else { return }
+        selectionPurpose = purpose
         Task {
             await waitForMenuToClose()
             do {
@@ -88,8 +103,28 @@ final class CaptureCoordinator {
         overlays.removeAll()
         NSCursor.arrow.set()
         guard let rect, let image = snapshot.crop(rect) else { return }
-        lastRegion = (snapshot.displayID, rect)
-        deliver(image, scale: snapshot.scale)
+        switch selectionPurpose {
+        case .capture:
+            lastRegion = (snapshot.displayID, rect)
+            deliver(image, scale: snapshot.scale)
+        case .recognizeText:
+            Task { await copyText(from: image) }
+        }
+    }
+
+    private func copyText(from image: CGImage) async {
+        do {
+            let text = try await TextRecognizer.recognizeText(in: image)
+            guard !text.isEmpty else {
+                Toast.show("Aucun texte détecté", systemImage: "text.magnifyingglass")
+                return
+            }
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+            Toast.show("Texte copié (\(text.count) caractères)")
+        } catch {
+            report(error)
+        }
     }
 
     // MARK: Output

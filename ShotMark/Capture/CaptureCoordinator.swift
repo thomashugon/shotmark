@@ -99,6 +99,7 @@ final class CaptureCoordinator {
     }
 
     private func finishSelection(snapshot: ScreenSnapshot, rect: CGRect?) {
+        guard !overlays.isEmpty else { return }
         overlays.forEach { $0.close() }
         overlays.removeAll()
         NSCursor.arrow.set()

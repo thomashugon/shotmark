@@ -20,6 +20,7 @@ enum Toast {
         let panel = NSPanel(contentRect: CGRect(origin: .zero, size: size),
                             styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
+        panel.isReleasedWhenClosed = false
         panel.contentView = hosting
         panel.isOpaque = false
         panel.backgroundColor = .clear

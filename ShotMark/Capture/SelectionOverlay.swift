@@ -14,6 +14,8 @@ final class SelectionOverlayController {
                                styleMask: .borderless,
                                backing: .buffered,
                                defer: false)
+        // Owned by this controller: AppKit must not also release it on close (double free under ARC).
+        window.isReleasedWhenClosed = false
         window.level = .screenSaver
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         window.isOpaque = true
@@ -22,7 +24,13 @@ final class SelectionOverlayController {
         window.acceptsMouseMovedEvents = true
 
         let view = SelectionView(snapshot: snapshot)
-        view.onFinish = { [snapshot] rect in onFinish(snapshot, rect) }
+        // Finish on the next run loop pass, so the view is not torn down
+        // while it is still handling the mouse or key event.
+        view.onFinish = { [snapshot] rect in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { onFinish(snapshot, rect) }
+            }
+        }
         window.contentView = view
         window.setFrame(snapshot.screen.frame, display: false)
     }
